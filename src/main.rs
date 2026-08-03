@@ -1,12 +1,22 @@
 use hound;
 use num_complex::Complex;
-use std::fs::File;
-use std::io::Write;
 
-fn save_constellation_csv(iq: &[Complex<f32>], path: &str, n: usize) {
-    let mut file = File::create(path).unwrap();
-    for c in iq.iter().take(n) {
-        writeln!(file, "{},{}", c.re, c.im).unwrap();
+const TAPS: u8 = 65;
+const CUTOFF: f32 = 90000.0;
+const ALMOST_ZERO: f32 = 1e-4;
+
+fn generate_lowpass_filter(sample_rate: f32) {
+    let mut indices: Vec<f32> = Vec::new();
+    for i in 0..TAPS {
+        indices.push(i as f32);
+    }
+    let m: f32 = (TAPS as f32 - 1.0) / 2.0;
+    let fc_norm = CUTOFF / sample_rate;
+
+    let mut x_vals: Vec<f32> = Vec::new();
+    for i in 0..TAPS as usize {
+        let x = 2.0 * fc_norm * (indices[i] - m);
+        x_vals.push(x);
     }
 }
 
@@ -25,15 +35,6 @@ fn load_iq(path: &str) -> Vec<Complex<f32>> {
 fn main() {
     let iq = load_iq("sample.wav");
     
-    println!("iq samples: {}", iq.len());
-    
-    let max_i = iq.iter().map(|c| c.re).fold(f32::MIN, f32::max);
-    let max_q = iq.iter().map(|c| c.im).fold(f32::MIN, f32::max);
-    println!("max I: {}, max Q: {}", max_i, max_q);
-    
-    let mean_i: f32 = iq.iter().map(|c| c.re).sum::<f32>() / iq.len() as f32;
-    let mean_q: f32 = iq.iter().map(|c| c.im).sum::<f32>() / iq.len() as f32;
-    println!("mean I: {}, mean Q: {}", mean_i, mean_q);
+    // build indices
 
-    save_constellation_csv(&iq, "constellation.csv", 10000);
 }
