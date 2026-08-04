@@ -66,6 +66,9 @@ fn load_iq(path: &str) -> Vec<Complex<f32>> {
 fn main() {
     let iq = load_iq("sample.wav");
     
+    let coos = generate_lowpass_filter(187500.0);
+
+    println!("{}", coos.iter().sum::<f32>());
     // build indices
 
 }
