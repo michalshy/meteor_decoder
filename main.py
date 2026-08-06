@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import csv
 
 i_vals, q_vals = [], []
-with open('constellation.csv') as f:
+with open('filtered_sample.csv') as f:
     for row in csv.reader(f):
         i_vals.append(float(row[0]))
         q_vals.append(float(row[1]))

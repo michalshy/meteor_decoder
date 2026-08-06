@@ -2,6 +2,15 @@ use core::f32;
 
 use hound;
 use num_complex::Complex;
+use std::fs::File;
+use std::io::Write;
+
+fn save_iq_to_csv(iq: &[Complex<f32>], path: &str) {
+    let mut file = File::create(path).unwrap();
+    for c in iq.iter() {
+        writeln!(file, "{},{}", c.re, c.im).unwrap();
+    }
+}
 
 const TAPS: u8 = 65;
 const CUTOFF: f32 = 90000.0;
@@ -65,10 +74,20 @@ fn load_iq(path: &str) -> Vec<Complex<f32>> {
 
 fn main() {
     let iq = load_iq("sample.wav");
+    let mut filtered: Vec<Complex<f32>> = Vec::new();
     
-    let coos = generate_lowpass_filter(187500.0);
+    let coeffs = generate_lowpass_filter(187500.0);
 
-    println!("{}", coos.iter().sum::<f32>());
-    // build indices
+    for i in 64..iq.len(){
+        let mut sum_re = 0.0;
+        let mut sum_im = 0.0;
+        let idx = i - (TAPS as usize - 1);
+        for j in 0..TAPS as usize {
+            sum_re += iq[idx + j].re * coeffs[j];
+            sum_im += iq[idx + j].im * coeffs[j];
+        }
+        filtered.push(Complex { re: sum_re, im: sum_im });
+    }
 
+    save_iq_to_csv(&filtered[0..1_000_000], "filtered_sample.csv");
 }
